@@ -80,7 +80,7 @@ model.add_data(data)
 #  viterbi EM  #
 ################
 
-for itr in progprint_xrange(50):
+for itr in progprint_xrange(25):
     model.Viterbi_EM_step()
 
 ##########
