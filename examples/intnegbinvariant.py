@@ -47,7 +47,7 @@ T,obs_dim = data.shape
 #  set up model  #
 ##################
 
-Nmax = 20
+Nmax = 50
 
 obs_distns = \
         [pyhsmm.distributions.Gaussian(
