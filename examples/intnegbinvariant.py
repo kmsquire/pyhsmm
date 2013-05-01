@@ -13,30 +13,35 @@ from pyhsmm.util.text import progprint_xrange
 # data = np.loadtxt('example-data.txt')[:2500]
 # T,obs_dim = data.shape
 
-N = 4
-T = 1000
-obs_dim = 2
+# N = 4
+# T = 1000
+# obs_dim = 2
 
-obs_hypparams = {'mu_0':np.zeros(obs_dim),
-                'sigma_0':np.eye(obs_dim),
-                'kappa_0':0.05,
-                'nu_0':obs_dim+5}
+# obs_hypparams = {'mu_0':np.zeros(obs_dim),
+#                 'sigma_0':np.eye(obs_dim),
+#                 'kappa_0':0.05,
+#                 'nu_0':obs_dim+5}
 
-dur_hypparams = {'alpha_0':2*20,
-                 'beta_0':2}
+# dur_hypparams = {'alpha_0':2*20,
+#                  'beta_0':2}
 
-true_obs_distns = [pyhsmm.distributions.Gaussian(**obs_hypparams) for state in xrange(N)]
-true_dur_distns = [pyhsmm.distributions.PoissonDuration(**dur_hypparams) for state in range(N)]
+# true_obs_distns = [pyhsmm.distributions.Gaussian(**obs_hypparams) for state in xrange(N)]
+# true_dur_distns = [pyhsmm.distributions.PoissonDuration(**dur_hypparams) for state in range(N)]
 
-truemodel = pyhsmm.models.HSMM(alpha=6.,gamma=6.,init_state_concentration=6.,
-                              obs_distns=true_obs_distns,
-                              dur_distns=true_dur_distns)
+# truemodel = pyhsmm.models.HSMM(alpha=6.,gamma=6.,init_state_concentration=6.,
+#                               obs_distns=true_obs_distns,
+#                               dur_distns=true_dur_distns)
 
-data, labels = truemodel.generate(T)
+# data, labels = truemodel.generate(T)
 
-plt.figure()
-truemodel.plot()
-plt.gcf().suptitle('True model')
+# plt.figure()
+# truemodel.plot()
+# plt.gcf().suptitle('True model')
+
+from sklearn.externals import joblib
+princomps_u = joblib.load("/users/mattjj/Dropbox/Test Data/Required For Testing/princomps_u")
+data = princomps_u[:8000].copy()
+T,obs_dim = data.shape
 
 ##################
 #  set up model  #
@@ -68,8 +73,8 @@ model.add_data(data)
 #  resample  #
 ##############
 
-for itr in progprint_xrange(10):
-    model.resample_model()
+# for itr in progprint_xrange(10):
+#     model.resample_model()
 
 ################
 #  viterbi EM  #
