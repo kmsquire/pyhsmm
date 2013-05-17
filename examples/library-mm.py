@@ -14,7 +14,8 @@ from pyhsmm.basic.models import FrozenMixtureDistribution
 
 T = 1000
 
-f = np.load("/Users/Alex/Dropbox/Science/Datta lab/Posture Tracking/Test Data/TMT_50p_mixtures_and_data.npz")
+# f = np.load("/Users/Alex/Dropbox/Science/Datta lab/Posture Tracking/Test Data/TMT_50p_mixtures_and_data.npz")
+f = np.load("/Users/mattjj/Dropbox/Test Data/TMT_50p_mixtures_and_data.npz")
 mus = f['mu']
 sigmas = f['sigma']
 data = f['data'][:T]
@@ -24,7 +25,7 @@ labels = f['labels'][:T]
 
 # boost diagonal a bit to make it better behaved
 for i in range(sigmas.shape[0]):
-    sigmas[i] += np.eye(obs_dim)*1e-7
+    sigmas[i] += np.eye(obs_dim)*1e-8
 
 #####################################
 #  build observation distributions  #
@@ -105,7 +106,7 @@ model.trans_distn.max_likelihood([rle(labels)[0]])
 # all likelihoods
 model.add_data(np.arange(T))
 
-for itr in progprint_xrange(25):
+for itr in progprint_xrange(5):
     model.resample_model()
 
 # niter = 25
