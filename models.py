@@ -104,7 +104,6 @@ class HMM(ModelGibbsSampling, ModelEM):
 
     ### Gibbs sampling
 
-    #@profile
     def resample_model(self,**kwargs):
         self.resample_obs_distns(**kwargs)
         self.resample_trans_distn()
