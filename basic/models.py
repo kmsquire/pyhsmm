@@ -64,6 +64,9 @@ class FrozenMixtureDistribution(MixtureDistribution):
             weights=self.weights,
             likelihoods=self._likelihoods))
 
+    def resample(self,data,niter=5,temp=None):
+        super(FrozenMixtureDistribution,self).resample(data=data,niter=niter,temp=temp)
+
     def resample_model(self, temp=None):
         for l in self.labels_list:
             l.resample(temp=temp)
