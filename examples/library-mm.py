@@ -6,7 +6,7 @@ from pyhsmm.util.text import progprint_xrange
 
 import pyhsmm
 from pyhsmm import distributions as d
-from pyhsmm.basic.pybasicbayes.models import FrozenMixtureDistribution
+from pyhsmm.basic.models import FrozenMixtureDistribution
 
 ###############
 #  load data  #

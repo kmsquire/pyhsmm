@@ -1,6 +1,7 @@
 from __future__ import division
 from pybasicbayes.models import *
 
+from ..util.stats import sample_discrete_from_log
 
 # this FrozenMixtureDistribution leaves its components' parameters fixed and
 # only adjusts its weights
