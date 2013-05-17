@@ -14,7 +14,6 @@ class FrozenLabels(Labels):
     def meanfieldupdate(self):
         raise NotImplementedError
 
-    @profile
     def resample(self,temp=None):
         scores = self._likelihoods[self.data] + \
                 self.weights.log_likelihood(np.arange(len(self.components)))
@@ -79,7 +78,6 @@ class FrozenMixtureDistribution(MixtureDistribution):
         vals += self.weights.log_likelihood(np.arange(K))
         return np.logaddexp.reduce(vals,axis=1)
 
-    @profile
     def log_likelihood(self,sub_indices):
         # NOTE: this method takes INDICES into the data
         shifted_likelihoods = self._shifted_likelihoods

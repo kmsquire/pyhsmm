@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 import scipy.stats as stats
+import scipy.weave
 from numpy import newaxis as na
 np.seterr(invalid='raise')
 import operator
@@ -61,6 +62,7 @@ class HDPHMMTransitions(object):
         self.A = stats.gamma.rvs(self.alpha * self.beta + trans_counts + 1e-2)
         self.A /= self.A.sum(1)[:,na]
 
+    #@profile
     def _count_transitions(self,states_list):
         trans_counts = np.zeros((self.state_dim,self.state_dim),dtype=np.int32)
         for states in states_list:
@@ -70,8 +72,7 @@ class HDPHMMTransitions(object):
         self.trans_counts = trans_counts
         return trans_counts
 
-    # TODO push this into eigen
-    def _get_m(self,trans_counts):
+    def _get_m_slow(self,trans_counts):
         m = np.zeros((self.state_dim,self.state_dim),dtype=np.int32)
         if not (0 == trans_counts).all():
             for (rowidx, colidx), val in np.ndenumerate(trans_counts):
@@ -80,6 +81,30 @@ class HDPHMMTransitions(object):
                             /(np.arange(val) + self.alpha*self.beta[colidx])).sum()
         self.m = m
         return m
+
+    #@profile
+    def _get_m(self,trans_counts):
+        N = trans_counts.shape[0]
+        m = np.zeros((N,N),dtype=np.int32)
+        if not (0 == trans_counts).all():
+            alpha, beta = self.alpha, self.beta
+            scipy.weave.inline(
+                    '''
+                    for (int i=0; i<N; i++) {
+                        for (int j=0; j<N; j++) {
+                            int tot = 0;
+                            for (int k=0; k<trans_counts[N*i+j]; k++) {
+                                tot += ((double)rand())/RAND_MAX < (alpha * beta[j])/(k+alpha*beta[j]);
+                            }
+                            m[N*i+j] = tot;
+                        }
+                    }
+                    ''',
+                    ['trans_counts','N','m','alpha','beta'],
+                    extra_compile_args=['-O3'])
+        self.m = m
+        return m
+
 
     ### max likelihood
     # TODO these methods shouldn't really be in this class... maybe put them in
@@ -314,6 +339,7 @@ class HDPHSMMTransitions(HDPHMMTransitions):
             self.beta = beta
             self.fullA = fullA
 
+    #@profile
     def resample(self,stateseqs=[]):
         states_noreps = map(operator.itemgetter(0),map(rle, stateseqs))
 
@@ -323,6 +349,7 @@ class HDPHSMMTransitions(HDPHMMTransitions):
         self._resample_beta(m)
         self._resample_A(augmented_data)
 
+    #@profile
     def _augment_data(self,trans_counts):
         trans_counts = trans_counts.copy()
         if trans_counts.sum() > 0:
@@ -333,6 +360,7 @@ class HDPHSMMTransitions(HDPHMMTransitions):
         self.trans_counts = trans_counts
         return trans_counts
 
+    #@profile
     def _resample_A(self,augmented_data):
         super(HDPHSMMTransitions,self)._resample_A(augmented_data)
         self.fullA = self.A.copy()
