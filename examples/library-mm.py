@@ -106,7 +106,7 @@ model.trans_distn.max_likelihood([rle(labels)[0]])
 # all likelihoods
 model.add_data(np.arange(T))
 
-for itr in progprint_xrange(5):
+for itr in progprint_xrange(10):
     model.resample_model()
 
 # niter = 25
