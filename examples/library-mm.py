@@ -39,15 +39,17 @@ component_library = \
 
 # frozen mixtures never change their component parameters so we can compute the
 # likelihoods all at once in the front
-all_likelihoods = FrozenMixtureDistribution.get_all_likelihoods(
-        components=component_library,
-        data=data)
+all_likelihoods, maxes, shifted_likelihoods = \
+        FrozenMixtureDistribution.get_all_likelihoods(
+                components=component_library,
+                data=data)
 
 # initialize to each state corresponding to just one gaussian component
 init_weights = np.eye(library_size)
 
 hsmm_obs_distns = [FrozenMixtureDistribution(
     all_likelihoods=all_likelihoods,
+    maxes=maxes,shifted_likelihoods=shifted_likelihoods,
     all_data=data, # for plotting
     components=component_library,
     # NOTE: alpha_0 here controls the prior on the number of mixture components

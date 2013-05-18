@@ -49,13 +49,15 @@ class FrozenMixtureDistribution(MixtureDistribution):
         likelihoods = np.empty((data.shape[0],len(components)))
         for idx, c in enumerate(components):
             likelihoods[:,idx] = c.log_likelihood(data)
-        return likelihoods
+        maxes = likelihoods.max(axis=1)
+        shifted_likelihoods = np.exp(likelihoods - maxes[:,na])
+        return likelihoods, maxes, shifted_likelihoods
 
-    def __init__(self,all_data,all_likelihoods,*args,**kwargs):
+    def __init__(self,all_data,all_likelihoods,maxes,shifted_likelihoods,*args,**kwargs):
         super(FrozenMixtureDistribution,self).__init__(*args,**kwargs)
         self._likelihoods = all_likelihoods
-        self._maxes = all_likelihoods.max(axis=1)
-        self._shifted_likelihoods = np.exp(all_likelihoods - self._maxes[:,na])
+        self._maxes = maxes
+        self._shifted_likelihoods = shifted_likelihoods
         self._data = all_data
 
     def add_data(self,data):
