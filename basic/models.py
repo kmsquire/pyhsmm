@@ -6,6 +6,9 @@ from ..util.stats import sample_discrete_from_log
 # this FrozenMixtureDistribution leaves its components' parameters fixed and
 # only adjusts its weights
 
+import os
+eigen_path = os.path.join(os.path.dirname(__file__),'../deps/Eigen3')
+
 class FrozenLabels(Labels):
     def __init__(self,likelihoods,*args,**kwargs):
         super(FrozenLabels,self).__init__(*args,**kwargs)
@@ -103,7 +106,7 @@ class FrozenMixtureDistribution(MixtureDistribution):
                 }
                 ''',['sub_indices','shifted_likelihoods','K','num_indices',
                     'num_sub_indices','out','weights','maxes'],
-                headers=['<Eigen/Core>','<math.h>'],include_dirs=['../deps/Eigen3/'],
+                headers=['<Eigen/Core>','<math.h>'],include_dirs=[eigen_path],
                 extra_compile_args=['-O3','-DNDEBUG'])
         return out
 
