@@ -75,7 +75,10 @@ class FrozenMixtureDistribution(MixtureDistribution):
     def resample_model(self, temp=None):
         for l in self.labels_list:
             l.resample(temp=temp)
-        self.weights.resample_just_weights([l.z for l in self.labels_list])
+        if hasattr(self.weights,'resample_just_weights'):
+            self.weights.resample_just_weights([l.z for l in self.labels_list])
+        else:
+            self.weights.resample([l.z for l in self.labels_list])
 
     def log_likelihood(self,x):
         return self.log_likelihood_faster_2(x)
