@@ -40,13 +40,15 @@ component_library = [c for m in GMMs for c in m.components]
 library_size = len(component_library)
 
 # get all likelihoods
-all_likelihoods = FrozenMixtureDistribution.get_all_likelihoods(component_library,data)
+all_likelihoods, maxes, shifted_likelihoods = \
+        FrozenMixtureDistribution.get_all_likelihoods(component_library,data)
 
 # initialize weights to indicator on one component
 init_weights = np.eye(library_size)
 
 FrozenGMMs = [FrozenMixtureDistribution(
     all_likelihoods=all_likelihoods,
+    maxes=maxes,shifted_likelihoods=shifted_likelihoods,
     all_data=data,
     components=component_library,
     alpha_0=4.,

@@ -30,8 +30,12 @@ for (int t=T-2; t>=0; t--) {
 
         for (int i=start; i<end; i++) {
             cmax = max(ebetal(i,t+1),ebetal(i+1,t+1));
-            ebetal(i,t) = log(pi*exp(ebetal(i,t+1)-cmax)+(1.0-pi)*exp(ebetal(i+1,t+1)-cmax))
-                            + cmax + eaBl(idx,t+1);
+            if (isinf(cmax)) {
+                ebetal(i,t) = -INFINITY;
+            } else {
+                ebetal(i,t) = log(pi*exp(ebetal(i,t+1)-cmax)+(1.0-pi)*exp(ebetal(i+1,t+1)-cmax))
+                                + cmax + eaBl(idx,t+1);
+            }
         }
         temp = ebetal(end,t+1) + eaBl(idx,t+1);
         cmax = max(temp,incoming(idx));

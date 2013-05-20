@@ -905,6 +905,8 @@ class HSMMStatesIntegerNegativeBinomialVariant(_HSMMStatesIntegerNegativeBinomia
                 headers=['<Eigen/Core>'],include_dirs=[eigen_path],
                 extra_compile_args=['-O3','-DNDEBUG'])
 
+        assert not np.isnan(betal).any() and not np.isnan(superbetal).any()
+
         return betal, superbetal
 
     def sample_forwards(self,betal,superbetal):
@@ -1101,6 +1103,16 @@ class HSMMStatesIntegerNegativeBinomial(_HSMMStatesIntegerNegativeBinomialBase):
 
         self.stateseq = stateseq
         self.stateseq_norep, self.durations = util.rle(self.stateseq)
+
+class LibraryHSMMStatesIntegerNegativeBinomialVariant(HSMMStatesIntegerNegativeBinomialVariant):
+    @property
+    def hsmm_aBl(self):
+        if self._aBl is None:
+            likelihoods = self.obs_distns[0]._shifted_likelihoods
+            weights = np.hstack([o.weights.weights[:,na] for o in self.obs_distns])
+            self._aBl = np.log(likelihoods.dot(weights))
+            self._aBl += self.obs_distns[0]._maxes[:,na]
+        return self._aBl
 
 #################
 #  eigen stuff  #

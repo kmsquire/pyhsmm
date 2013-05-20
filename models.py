@@ -102,6 +102,10 @@ class HMM(ModelGibbsSampling, ModelEM):
         for s in self.states_list:
             s.clear_caches()
 
+    def __getstate__(self):
+        self._clear_caches()
+        return self.__dict__.copy()
+
     ### Gibbs sampling
 
     def resample_model(self,**kwargs):
@@ -545,4 +549,8 @@ class HSMMIntNegBin(_HSMMIntNegBinBase):
                    d.__class__ == basic.distributions.NegativeBinomialFixedRDuration
                    for d in dur_distns)
         super(HSMMIntNegBin,self).__init__(obs_distns,dur_distns,*args,**kwargs)
+
+
+class LibraryHSMMIntNegBinVariant(HSMMIntNegBinVariant):
+    _states_class = states.LibraryHSMMStatesIntegerNegativeBinomialVariant
 

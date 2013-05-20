@@ -70,11 +70,15 @@ class FrozenMixtureDistribution(MixtureDistribution):
 
     def resample(self,data,niter=5,temp=None):
         super(FrozenMixtureDistribution,self).resample(data=data,niter=niter,temp=temp)
+        self.weights.resample([l.z for l in self.labels_list])
 
     def resample_model(self, temp=None):
         for l in self.labels_list:
             l.resample(temp=temp)
-        self.weights.resample([l.z for l in self.labels_list])
+        self.weights.resample_just_weights([l.z for l in self.labels_list])
+
+    def log_likelihood(self,x):
+        return self.log_likelihood_faster_2(x)
 
     def log_likelihood_slower(self,x):
         # NOTE: x is indices
@@ -83,7 +87,39 @@ class FrozenMixtureDistribution(MixtureDistribution):
         vals += self.weights.log_likelihood(np.arange(K))
         return np.logaddexp.reduce(vals,axis=1)
 
-    def log_likelihood(self,sub_indices):
+    def log_likelihood_faster(self,sub_indices):
+        # NOTE: this method takes INDICES into the data
+        log_likelihoods = self._likelihoods
+        log_weights = np.log(self.weights.weights)
+
+        K = self.weights.weights.shape[0]
+        num_sub_indices = sub_indices.shape[0]
+        num_indices = log_likelihoods.shape[0]
+
+        out = np.empty(num_sub_indices)
+
+        scipy.weave.inline(
+                '''
+                using namespace Eigen;
+
+                Map<ArrayXd> elog_weights(log_weights,K);
+                Map<ArrayXXd> eall_log_likelihoods(log_likelihoods,K,num_indices);
+
+                ArrayXd row(K);
+
+                for (int i=0; i < num_sub_indices; i++) {
+                    int idx = sub_indices[i];
+                    row = elog_weights + eall_log_likelihoods.col(idx);
+                    double themax = row.maxCoeff();
+                    out[i] = log((row - themax).exp().sum()) + themax;
+                }
+                ''',['sub_indices','log_likelihoods','K','num_indices',
+                    'num_sub_indices','out','log_weights'],
+                headers=['<Eigen/Core>','<math.h>'],include_dirs=[eigen_path],
+                extra_compile_args=['-O3','-DNDEBUG'])
+        return out
+
+    def log_likelihood_faster_2(self,sub_indices):
         # NOTE: this method takes INDICES into the data
         shifted_likelihoods = self._shifted_likelihoods
         maxes = self._maxes
@@ -159,4 +195,11 @@ class FrozenMixtureDistribution(MixtureDistribution):
 
         for d in data:
             self.labels_list.pop()
+
+    def __getstate__(self):
+        return dict(weights=self.weights)
+
+    def __setstate__(self,d):
+        self.weights = d['weights'].astype(np.float64)
+        # TODO need to set components library!
 

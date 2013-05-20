@@ -2,7 +2,7 @@ from __future__ import division
 import numpy as np
 
 from pyhsmm.util.general import rle
-from pyhsmm.util.text import progprint_xrange
+from pyhsmm.util.text import progprint_xrange, progprint
 
 import pyhsmm
 from pyhsmm import distributions as d
@@ -12,20 +12,22 @@ from pyhsmm.basic.models import FrozenMixtureDistribution
 #  load data  #
 ###############
 
-T = 1000
+T = 5000
 
 # f = np.load("/Users/Alex/Dropbox/Science/Datta lab/Posture Tracking/Test Data/TMT_50p_mixtures_and_data.npz")
-f = np.load("/Users/mattjj/Dropbox/Test Data/TMT_50p_mixtures_and_data.npz")
+# f = np.load("/Users/mattjj/Dropbox/Test Data/TMT_50p_mixtures_and_data.npz")
+f = np.load("/Users/mattjj/Dropbox/Test Data/signal_chunked_7samples.npz")
 mus = f['mu']
 sigmas = f['sigma']
 data = f['data'][:T]
 
+
 library_size, obs_dim = mus.shape
-labels = f['labels'][:T]
+# labels = f['labels'][:T]
 
 # boost diagonal a bit to make it better behaved
-for i in range(sigmas.shape[0]):
-    sigmas[i] += np.eye(obs_dim)*1e-8
+# for i in range(sigmas.shape[0]):
+#     sigmas[i] += np.eye(obs_dim)*1e-6
 
 #####################################
 #  build observation distributions  #
@@ -56,14 +58,14 @@ hsmm_obs_distns = [FrozenMixtureDistribution(
     # within each GMM emission distribution. a lower alpha_0 makes it more
     # expensive to use more mixture components. it roughly corresponds to the
     # expected number of components, though it's much more flexible than that.
-    alpha_0=6.,
+    # alpha_0=6.,
     # NOTE: an alternative to setting alpha_0 directly is to put a gamma prior
     # over it and sample it. to do that, comment out the alpha_0 line above and
     # use the line below to set a gamma prior. see the call to plt.plot below
     # to get a sense for how these parameters set the relative probabilities of
     # different alpha_0.
-    # a_0=1.,b_0=1./6,
-    weights=weights,
+    a_0=1.,b_0=1./6,
+    #weights=weights,
     ) for weights in init_weights]
 
 ## NOTE: run this block to visualize a gamma prior
@@ -83,7 +85,7 @@ dur_distns = [d.NegativeBinomialIntegerRVariantDuration(
     np.r_[0.,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
     alpha_0=5.,beta_0=5.) for state in range(library_size)]
 
-model = pyhsmm.models.HSMMIntNegBinVariant(
+model = pyhsmm.models.LibraryHSMMIntNegBinVariant(
         init_state_concentration=10., # this parameter is irrelevant for us
         # NOTE: alpha and gamma are the concentration parameters for the HDP
         # over the HSMM transition matrix, and they work analogously to alpha_0
@@ -98,7 +100,7 @@ model = pyhsmm.models.HSMMIntNegBinVariant(
         gamma_a_0=1.,gamma_b_0=1./10,
         obs_distns=hsmm_obs_distns,
         dur_distns=dur_distns)
-model.trans_distn.max_likelihood([rle(labels)[0]])
+# model.trans_distn.max_likelihood([rle(labels)[0]])
 
 #############
 #  run it!  #
@@ -108,8 +110,12 @@ model.trans_distn.max_likelihood([rle(labels)[0]])
 # all likelihoods
 model.add_data(np.arange(T))
 
-for itr in progprint_xrange(10):
-    model.resample_model()
+num_iter = 20
+t = np.ones(num_iter)
+t[:num_iter//2] = np.linspace(1000.,1.,num_iter//2)
+for temp in progprint(t,total=num_iter):
+    model.resample_model(temp=temp)
+    print len(np.unique(model.states_list[0].stateseq_norep))
 
 # niter = 25
 # W = np.zeros((niter,library_size,library_size))
