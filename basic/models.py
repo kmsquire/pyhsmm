@@ -77,7 +77,9 @@ class FrozenMixtureDistribution(MixtureDistribution):
 
             for itr in range(niter):
                 self.resample_model(temp=temp)
-            self.weights.resample([l.z for l in self.labels_list])
+            self.weights.resample([l.z for l in self.labels_list]) # for resampling concentration parameter
+
+            self._last_zs = [l.z for l in self.labels_list] # save the last labels we used
 
             self.labels_list.pop()
         else:
