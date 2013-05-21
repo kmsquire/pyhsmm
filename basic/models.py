@@ -69,14 +69,25 @@ class FrozenMixtureDistribution(MixtureDistribution):
             likelihoods=self._likelihoods))
 
     def resample(self,data,niter=5,temp=None):
-        super(FrozenMixtureDistribution,self).resample(data=data,niter=niter,temp=temp)
-        self.weights.resample([l.z for l in self.labels_list])
+        if getdatasize(data) > 0:
+            if not isinstance(data,np.ndarray):
+                data = np.concatenate(data)
+
+            self.add_data(data)
+
+            for itr in range(niter):
+                self.resample_model(temp=temp)
+            self.weights.resample([l.z for l in self.labels_list])
+
+            self.labels_list.pop()
+        else:
+            self.resample_model(temp=temp)
 
     def resample_model(self, temp=None):
         for l in self.labels_list:
             l.resample(temp=temp)
         if hasattr(self.weights,'resample_just_weights'):
-            self.weights.resample_just_weights([l.z for l in self.labels_list])
+            self.weights.resample_just_weights([l.z for l in self.labels_list]) # don't do concentration
         else:
             self.weights.resample([l.z for l in self.labels_list])
 

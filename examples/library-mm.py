@@ -12,11 +12,12 @@ from pyhsmm.basic.models import FrozenMixtureDistribution
 #  load data  #
 ###############
 
-T = 5000
+T = 10000
 
 # f = np.load("/Users/Alex/Dropbox/Science/Datta lab/Posture Tracking/Test Data/TMT_50p_mixtures_and_data.npz")
 # f = np.load("/Users/mattjj/Dropbox/Test Data/TMT_50p_mixtures_and_data.npz")
-f = np.load("/Users/mattjj/Dropbox/Test Data/signal_chunked_7samples.npz")
+# f = np.load("/Users/mattjj/Dropbox/Test Data/signal_chunked_7samples.npz")
+f = np.load("/home/mattjj/signal_chunked_7samples.npz")
 mus = f['mu']
 sigmas = f['sigma']
 data = f['data'][:T]
@@ -64,9 +65,9 @@ hsmm_obs_distns = [FrozenMixtureDistribution(
     # use the line below to set a gamma prior. see the call to plt.plot below
     # to get a sense for how these parameters set the relative probabilities of
     # different alpha_0.
-    a_0=1.,b_0=1./6,
+    a_0=1.,b_0=1./25,
     #weights=weights,
-    ) for weights in init_weights]
+    ) for state in range(200)]
 
 ## NOTE: run this block to visualize a gamma prior
 # from matplotlib import pyplot as plt
@@ -83,7 +84,7 @@ hsmm_obs_distns = [FrozenMixtureDistribution(
 
 dur_distns = [d.NegativeBinomialIntegerRVariantDuration(
     np.r_[0.,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
-    alpha_0=5.,beta_0=5.) for state in range(library_size)]
+    alpha_0=10.,beta_0=90.) for state in range(200)]
 
 model = pyhsmm.models.LibraryHSMMIntNegBinVariant(
         init_state_concentration=10., # this parameter is irrelevant for us
@@ -96,8 +97,8 @@ model = pyhsmm.models.LibraryHSMMIntNegBinVariant(
         # NOTE: as with a_0 and b_0 for the GMMs described above, we can also
         # put gamma priors over alpha and gamma by commenting out the direct
         # alpha= and gamma= lines and using these instead
-        alpha_a_0=1.,alpha_b_0=1./10,
-        gamma_a_0=1.,gamma_b_0=1./10,
+        alpha_a_0=1.,alpha_b_0=1./5,
+        gamma_a_0=1.,gamma_b_0=1./5,
         obs_distns=hsmm_obs_distns,
         dur_distns=dur_distns)
 # model.trans_distn.max_likelihood([rle(labels)[0]])
@@ -110,7 +111,7 @@ model = pyhsmm.models.LibraryHSMMIntNegBinVariant(
 # all likelihoods
 model.add_data(np.arange(T))
 
-num_iter = 20
+num_iter = 100
 t = np.ones(num_iter)
 t[:num_iter//2] = np.linspace(1000.,1.,num_iter//2)
 for temp in progprint(t,total=num_iter):
