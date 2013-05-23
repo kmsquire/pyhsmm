@@ -139,7 +139,9 @@ class HMM(ModelGibbsSampling, ModelEM):
         self.states_list[-1].data_id = data_id
 
 
-    def resample_model_parallel(self,numtoresample='all'):
+    def resample_model_parallel(self, *args, **kwargs):
+        numtoresample = kwargs.pop("numtoresample", "all")
+        temp = kwargs.pop("temp", None)
         from pyhsmm import parallel
         if numtoresample == 'all':
             numtoresample = len(self.states_list)
@@ -147,7 +149,10 @@ class HMM(ModelGibbsSampling, ModelEM):
             numtoresample = len(parallel.dv)
 
         ### resample parameters locally
-        self.resample_obs_distns()
+        if temp is not None:
+            self.resample_obs_distns(temp=temp)
+        else:
+            self.resample_obs_distns()
         self.resample_trans_distn()
         self.resample_init_state_distn()
 
@@ -395,15 +400,16 @@ class HSMM(HMM, ModelGibbsSampling):
         self._clear_caches()
 
     ### parallel
-
     def add_data_parallel(self,data_id,**kwargs):
         from pyhsmm import parallel
         self.add_data(parallel.alldata[data_id],**kwargs)
         self.states_list[-1].data_id = data_id
 
-    def resample_model_parallel(self,numtoresample='all'):
+    def resample_model_parallel(self,numtoresample='all',temp=None):
+        print "Temp is:"
+        print temp
         self.resample_dur_distns()
-        super(HSMM,self).resample_model_parallel(self,numtoresample)
+        super(HSMM,self).resample_model_parallel(self, numtoresample=numtoresample, temp=temp)
 
     ### EM
 
