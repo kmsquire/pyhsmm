@@ -216,6 +216,6 @@ class FrozenMixtureDistribution(MixtureDistribution):
         return dict(weights=self.weights)
 
     def __setstate__(self,d):
-        self.weights = d['weights'].astype(np.float64)
-        # TODO need to set components library!
+        self.weights = d['weights']
+        # need to set components library somewhere else!
 
